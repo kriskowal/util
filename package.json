@@ -1,0 +1,25 @@
+{
+    "name": "util",
+    "description": "JavaScript's missing methods",
+    "version": "0.0.0",
+    "homepage": "http://github.com/kriskowal/util/",
+    "author": "Kris Kowal <kris@cixar.com> (http://github.com/kriskowal/)",
+    "main": "util.js",
+    "repository": {
+        "type": "git",
+        "url": "http://github.com/kriskowal/util/"
+    },
+    "bugs": {
+        "mail": "kris@cixar.com",
+        "web": "http://github.com/kriskowal/util/issues"
+    },
+    "engines": {
+        "node": ">=0.2.0"
+    },
+    "licenses": [
+        {
+            "type": "MIT",
+            "url": "http://github.com/kriskowal/util/raw/master/LICENSE"
+        }
+    ]
+}

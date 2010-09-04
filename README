@@ -1,0 +1,547 @@
+
+
+Provides the missing methods for JavaScript
+
+ - usable as a CommonJS module, in Node
+ - usable as a <script> in all web browsers
+
+
+For Node:
+
+    $ curl http://npmjs.org/install.sh | sh
+    $ npm install util
+
+
+As a CommonJS module:
+
+    var UTIL = require("util");
+    UTIL.unique([1, 1, 2, 3, 3, 4]);
+
+
+As a <script src="util.js"></script>:
+
+    UTIL.unique([1, 1, 2, 3, 3, 4]);
+
+
+THE API
+
+
+    no(value)
+        returns whether value is null or undefined,
+        thus whether it is not safe to grab properties.
+
+    object(value)
+        converts values to objects
+        
+        - returns value.toObject() if available in the object's
+          prototype chain but not owned.
+        - creates shallow copies of objects
+        - converts sequences of [key, value] items into objects,
+          using the items(value) missing method
+          - any value can have items if it provides a
+            value.items() method.
+        - returns {} if value is undefined
+
+    array(value)
+        converts values to arrays
+
+        - creates shallow copies of all array-like objects,
+          including arguments and strings
+        - returns value.toArray() if available in the object's
+          prototype chain but not owned.
+        - uses value.forEach() if available in the object's
+          prototype chain but not owned.
+        - constructs arrays of [key, value] items from objects,
+          using the items(value) missing method
+          - any value can have items if it provides a
+            value.items() method.
+        - returns [] if value is undefined
+       
+    array.coerce(value)
+        returns Arrays unmodified, and uses array(value)
+        to convert all other values into arrays.
+        
+    isArrayLike(value)
+        returns whether the value is an array or arguments
+        object.
+
+    isArguments(value)
+        returns whether the given value is an arguments
+        object.
+
+    string(value)
+        converts a value to a string.
+        - converts null and undefined to an empty string.
+        - uses value.toString() if available in the polymorphic
+          chain and not owned.
+        - uses value.valueOf().toString() generally.
+
+    copy(value)
+        creates a shallow copy for the following values:
+        - null (null)
+        - undefined (undefined)
+        - array-like objects (as arrays)
+        - dates (passed through)
+        - objects (only owned properties reflected,
+          no prototype copy)
+
+        array.copy or object.copy are available if the type of the
+        value is known and non-polymorphic.
+
+    deepCopy(value)
+        creates a deep copy of a given value, recursing on arrays an
+        objects, not replicating prototype chains or non-owned
+        values.
+
+        Use array.deepCopy or object.deepCopy if the type
+        is known and polymorphism would be wasteful.
+   
+    keys(object)
+        returns an array of owned keys for both objects and array-like
+        objects.  the keys of an array are the range(0, object.length)
+
+        Use object.keys if the type of object is known and
+        polymorphism would be wasteful.
+
+    values(object)
+        returns an array of the owned values of both objects and
+        array-like objects.  the values of an array is a shallow
+        copy of the array.
+
+        Use object.values if the type of object is known
+        and polymorphism would be wasteful.
+        
+    items(object)
+        returns an array of the owned [key, value] items of the given
+        object.  the items of an array are an enumeration of
+        [offset, index] for indexes in the range(0, object.length)
+
+        Use object.items if the type of object is known and
+        polymorphism would be wasteful.
+
+    len(object)
+        returns the length of an array or object.  The
+        length of an object is the number of owned properties.
+        - uses object.len() if available in the object's prototype
+          chain.
+        - uses object.length if available
+
+        Use array.len or object.len if the type is known
+        and polymorphism would be wasteful.
+
+    has(object, value)
+        returns whether a given value is owned by an object.
+        - uses object.has(value) if available in the object's
+          prototype chain if not owned.
+        - curries on the value if partially applied.
+
+        Use array.has or object.has if the type is known
+        and polymorphism would be wasteful.
+
+    get(object, key, default_opt)
+        returns the value for a given key or offset in an object,
+        array, or string.  if the object does not own the key, or the
+        offset is out of the array or string's range, returns the
+        default object.  `undefined` qualifies as an owned value if it
+        exists.  throws an error if the key does not exist
+        if no default is provided.  `undefined` qualifies as
+        a provided default; the argument must be literally
+        omitted to signal that a default should be used instead
+        of throwing an error.
+        - uses object.get(key, default_opt) if available in
+          the object's prototype chain if not owned.
+        - curries on the key and default value once if partially
+          applied.
+
+    set(object, key, value)
+        sets the value for a given key or offset in the
+        given object or array.
+        - returns the object for chainability.
+        - uses object.set(key, value) if available in the
+          object's prototype chain if not owned.
+        - curries on the key and then the value if partially
+          applied once or twice.
+        
+    getset(object, key, default_opt)
+        returns the value for a given key or offset in an object,
+        array, or string.  if the object does not own the key yet,
+        or the offset is out of an array's range, sets the value
+        before returning.  `undefined` qualifies as an owned
+        value if it exists.
+        - uses object.getset(key, default) if it exists.
+        - curries on the key and default value once if partially
+          applied.
+
+    del(object, key)
+    del(object, begin, end)
+        deletes the key or all values for a range of offsets
+        in a given object or array.
+        - returns the object for chainability.
+        - uses object.del(...) if provided in the prototype chain but
+          not owned.
+        - curries once on the key or range if partially applied.
+
+        Use array.del if the type is known and polymorphism
+        would be wasteful.
+
+    cut(object, key)
+        deletes the item for a given key from an object or
+        array and returns the corresponding value.
+        - uses object.cut(key) if available in the prototype
+          chain but not owned.
+        - curries on the key if partially applied.
+
+    put(object, key, value)
+        operates like set(object, key, value) for objects,
+        but displaces an offset if the object is an array,
+        such that all subsequent values are shifted right.
+        - returns object for chainability.
+        - uses object.put(key, value) if available on the prototype
+          chain but not if it is owned.
+        - curries on key and value if partially applied.
+
+        Use array.put if the type is known and polymorphism
+        would be wasteful.
+
+    first(value)
+        returns the value at the first offset of an array
+        or array-like object.
+        - use value.first() if available on the prototype chain
+          but not owned.
+
+        Use array.first if the type is known and polymorphism
+        would be wasteful.
+
+    last(value)
+        returns the value at the last offset of an array or
+        array-like object.
+        - use value.last() if available on the prototype chain
+          but not owned.
+
+        Use array.last if the type is known and polymorphism
+        would be wasteful.
+
+    update(object, other)
+        shallowly copies the owned values of other over the object.
+        - returns the object for chainability
+        - uses object.update(other) if available on the prototype
+          chain but not owned.
+        - curries on the other object once.
+
+        Use object.update if the type is known and polymorphism
+        would be wasteful.
+
+    deepUpdate(object, other)
+        deeply copies the owned values of other over this object,
+        recursing on arrays and object.
+        - uses object.deepUpdate(other) if available on the prototype
+          chain but not owned, recursively.
+        - returns the object for chainability
+        - curries on the other object once.
+
+        Use object.deepUpdate if the type is known and polymorphism
+        would be wasteful.
+
+    complete(object, other)
+        shallowly copies the owned values of other into this
+        object if such keys do not already exist.
+        - uses object.complete(other) if available on the prototype
+          chain but not owned, recursively.
+        - returns the object for chainability
+        - curries on the other object once.
+
+        Use object.complete if the type is known and polymorphism
+        would be wasteful.
+
+    deepComplete(object, other)
+        deeply copies the owned properties of other into this
+        object if such keys do not already exist.
+        - uses object.deepComplete(other) if available on the
+          prototype chain but not owned, recursively.
+        - returns the object for chainability.
+        - curries on the other object once.
+
+        Use object.deepComplete if the type is known and polymorphism
+        would be wasteful.
+
+    remove(object, value)
+        removes a value from an array (O(n)).
+        - uses object.remove(value) if available in the prototype
+          chain but not owned.
+
+    range(length)
+    range(start, stop)
+    range(start, stop, step)
+        - constructs an array of integers in the given range
+        - NOT polymorphic
+
+    forEach(array, callback, that_opt)
+        calls back on each value in the array, using
+        array.coerce, such that it can be used
+        to iterate over the items of objects or other
+        values that provide a toArray or forEach
+        method in their prototype chain after owned
+        properties.
+        
+        - returns the array for chainability
+
+    forEachApply(arrayOfArrays, callback, that_opt)
+        calls back variadically, using apply, using each
+        array.  uses array.coerce on the arrayOfArrays
+        such that it can be used to iterate over the items
+        of objects or other values that provide a toArray
+        or forEach method in their prototype chain after
+        owned properties.
+
+        forEachApply({
+            "a": 10,
+            "b": 20
+        }, function (key, value) {
+        })
+
+        - returns the array for chainability
+
+    map(array, callback, that_opt)
+        Analogous to forEach but returns the respective
+        values of each callback in an array.
+
+    mapApply(array, callback, that_opt)
+        Analogous to forEachApply but returns the respective
+        values of each callback in an array.
+
+    every(array, callback, that_opt)
+        Applies the callback to each value in the array
+        (after coercion) and returns whether all of
+        the returned values were truthy, shorting on
+        the first falsy value.
+        - curries on the callback and that object once.
+        - uses array.every(callback, that) if available
+          in the prototype chain but not owned.
+
+    some(array, callback, that_opt)
+        Applies the callback to each value in the array
+        (after coercion) and returns whether any of the
+        returned values were truthy, shorting on the
+        first truthy value.
+        - curries on the callback and that object once.
+        - uses array.some(callback, that) if available
+          in the prototype chain but not owned.
+       
+    all(array)
+        returns whether all of the values in the array
+        are truthy.
+        - uses array.all() if available in the prototype
+          chain but not owned.
+
+    any(array)
+        returns whether any value in the array is truthy.
+        - uses array.any() if available in the prototype
+          chain but not owned.
+
+    reduce(array, callback(accumulated, value, index, array), basis_opt)
+        reduces an array by iteratively accumulating the return value
+        of the callback, given the current accumulation and the next
+        value.  the first accumulated value is the basis or undefined.
+        - uses array.reduce if provided in the prototype chain and not
+          owned.
+
+    reduce(array, callback(accumulated, value, index, array), basis_opt)
+        reduces an array by iteratively accumulating the return value
+        of the callback, given the current accumulation and the
+        previous value.  the first accumulated value is the basis or
+        undefined.
+        - uses array.reduceRight if provided in the prototype chain
+          and not owned.
+
+    zip(...)
+        returns an array of the respective values of each argument,
+        coercing non-array values.
+
+    transpose(matrix)
+        returns the transpose of an array of arrays, such that
+        the rows and columns are swapped.  transpose is the
+        inverse of itself, and equivalent to zipping variadically.
+
+    enumerate(array, start_opt)
+        returns an array of [offset, value] items for the
+        values in a given array, array-like object, or
+        object converted to an array using toArray or forEach.
+        - start defaults to 0
+
+    is(a, b)
+        returns whether two objects are identical by reference.
+        unlike pure ===, "is" is reflexive and treats
+        negative and positive zero and infinity as distinct.
+
+    eq(a, b)
+        returns whether to values are deeply equal by type
+        and value.
+        - use a.eq(b) if available in the prototype chain and
+          not owned, recursively.
+        - curries on second value if partially applied.
+
+        Use array.eq or object.eq if the type is known
+        and polymorphism would be wasteful.
+
+    ne(a, b)
+        !eq(a, b)
+        - uses a.ne(b) if available in the prototype chain
+          and not owned.
+        - curries on the second value if partially applied.
+
+    lt(a, b)
+        returns whether a is less than b.  operates
+        on arrays recursively.
+        - uses a.lt(b) if available in the prototype chain
+          and not owned.
+        - curries on the second value if partially applied.
+
+        array.lt
+
+    gt(a, b)        
+        returns whether a is greater than b.
+        !(lt(a, b) || eq(a, b))
+        - uses a.gt(b) if available in the prototype chain
+          and not owned.
+        - curries on the second value if partially applied.
+
+    le(a, b)
+        returns whether a is less than or equal to b.
+        lt(a, b) || eq(a, b)
+        - uses a.le(b) if available in the prototype chain
+          and not owned.
+        - curries on the second value if partially applied.
+
+    ge(a, b)
+        returns whether a is greater than or equal to b.
+        lt(a, b) || eq(a, b)
+        - uses a.ge(b) if available in the prototype chain
+          and not owned.
+        - curries on the second value if partially applied.
+
+    mul(a, b)
+        multiplies numbers and strings by numbers.
+        - uses a.mul(b) if available in the prototype chain
+          and not owned.
+        - curries on the second value if partially applied.
+
+        Use string.mul(a, b) if a is known to be a string
+        and polymorphism is wasteful.
+
+    compare(a, b)
+        returns a number such that a as compared to be
+        is equivalent to that value as compared to 0.
+        for example, if a is less than b, compare will
+        return a value that is less than zero.
+        Operates on numbers, strings, and arrays recursively.
+        Object comparison always returns 0.
+        - uses a.compare(b) if available in the prototype
+          chain and not owned.
+        - curries on the second value if partially applied.
+
+    by(callback)
+        returns a comparator, like compare, that will compare
+        values based on the comparison of the value returned
+        by the callback.
+
+    sort(array, compare_opt)
+        sorts an array, using array.sort(compare), where compare
+        defaults to deep comparison.  Object comparison is stable.
+        
+        If by(relation) is used to generate the comparator, sort
+        applies a Schwartzian transform which renders higher
+        performance generally for arrays that are longer than 3 by
+        guaranteeing that the relation will only be used on each value
+        once.
+
+    sorted(array, compare_opt)
+        returns a sorted copy of given array, using the
+        given comparator, or the default comapre function above.
+
+    reverse(array)
+        reverses an array in place.
+
+    reversed(array)
+        returns a reversed copy of an array.
+
+    hash(object)
+        returns a string representing a "hash" of the given
+        object, suitable for slotting arbitrary objects
+        in another object for high-performance look-ups.
+        - uses object.hash() if available in the prototype chain
+          and not owned.
+        - defaults to stringifying the object, which will perform
+          poorly (O(n)) if used to slot objects.
+
+    unique(values, eq_opt, hash_opt)
+        returns an array that only contains each equivalent
+        object in values once.  Uses "hash" for higher performance
+        look-ups of numbers and objects that implement that method,
+        and uses "eq" to distinguish equivalent objects.
+        "eq" and "hash" can be independently overridden.
+
+    escape(string, strictlyForJson_opt)
+        escapes non-printable and unicode characters with
+        back-slashes, like \b, \t, \n, \f, \r, \", \\,
+        \xff, \uffff.  If strictlyForJson is truthy,
+        does not use single-byte \xff encoding.
+
+    enquote(string, strictlyForJson_opt)
+        produces a double-quoted, escaped version of the
+        given string.
+
+    expand(string, tabLength_opt)
+        converts all tabs in a string into a visually
+        equivalent number of spaces, assuming that the
+        text begins at column 0.
+        - tab length is 4 by default
+
+    trimBegin(string)
+        trims white space on the left side of a string
+
+    trimEnd(string)
+        trims white space on the right side of a string
+
+    trim(string)
+        trims white space on both sides of a string
+
+    padBegin(padding, length, pad_opt)
+        pads a string with the padding on the left, "0" by default
+        until it is at least length-long.
+        
+    padEnd(padding, length, pad_opt)
+        pads a string with the padding on the right, "0" by default
+        until it is at least length-long.
+        
+    splitName(string)
+        splits a name into a string of its component words,
+        regardless of the case convention.  Respects
+        acronyms as single words, such that:
+
+        >>> splitName("XMLHttpRequest")
+        ["XML", "Http", "Request"]
+
+    joinName(delimiter, parts)
+        joins the words of a name into a single string,
+        using the given delimiter between numbers.
+        - if delimiter is undefined, it defaults to "_" 
+    
+    upper(value, delimiter_opt)
+        returns an "UPPERCASE" or "UPPER_CASE" (if a delimiter is
+        provided) variant of the given string, regardless of the input
+        case convention.
+    
+    lower(value, delimiter_opt)
+        returns an "lowercase" or "lower_case" (if a delimiter is
+        provided) variant of the given string, regardless of the input
+        case convention.
+    
+    camel(value, delimiter_opt)
+        returns a "camelCase" variant of the given string, regardless
+        of its case convention.
+
+    title(value, delimiter_opt)
+        returns a "TitleCase" or "Title Case" (if a delimiter is
+        provided) variant of the given string, regardless of its
+        original case convention.
+
