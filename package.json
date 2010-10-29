@@ -1,10 +1,10 @@
 {
-    "name": "util",
+    "name": "n-util",
     "description": "JavaScript's missing methods",
-    "version": "0.0.0",
+    "version": "0.0.1",
     "homepage": "http://github.com/kriskowal/util/",
     "author": "Kris Kowal <kris@cixar.com> (http://github.com/kriskowal/)",
-    "main": "util.js",
+    "main": "lib/util.js",
     "repository": {
         "type": "git",
         "url": "http://github.com/kriskowal/util/"

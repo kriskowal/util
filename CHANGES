@@ -1,0 +1,8 @@
+
+0.0.1
+    renamed to "n-util" to avoid conflict with Node's built-in
+    "util" module.
+
+0.0.0
+    born as "util" package for NPM
+

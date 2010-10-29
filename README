@@ -9,16 +9,16 @@ Provides the missing methods for JavaScript
 For Node:
 
     $ curl http://npmjs.org/install.sh | sh
-    $ npm install util
+    $ npm install n-util
 
 
 As a CommonJS module:
 
-    var UTIL = require("util");
+    var UTIL = require("n-util");
     UTIL.unique([1, 1, 2, 3, 3, 4]);
 
 
-As a <script src="util.js"></script>:
+As a <script src="n-util.js"></script>:
 
     UTIL.unique([1, 1, 2, 3, 3, 4]);
 
